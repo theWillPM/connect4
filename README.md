@@ -2,6 +2,7 @@
 An Object-Oriented approach to "Connect 4" game.
 
 This is my term project for Object Oriented Programming course, at Bow Valley College.
+
 Instructor: Ph.D.  Mahbub Murshed
 
 ** DO NOT COPY FROM THIS REPOSITORY (Bow Valley College) **
