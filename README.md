@@ -11,4 +11,5 @@ If you are here for academic purposes, do not copy from this code unless you hav
 If you found solutions to your problems, do quote the author and where you got your answers from.
 
 Copying code from anywhere will start a plagiarism investigation and you WILL be caught, resulting in severe penalties.
+
 Bow Valley College takes plagiarism very seriously - do not attempt it.
