@@ -15,5 +15,5 @@ Copying code from anywhere will start a plagiarism investigation and you WILL be
 
 Bow Valley College takes plagiarism very seriously - do not attempt it.
 
-![](https://github.com/theWillPM/connect4/Connect4/img/Connect_Four.gif)
+![](https://github.com/theWillPM/connect4/blob/main/img/Connect_Four.gif)
 By Silver Spoon - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=17635567
