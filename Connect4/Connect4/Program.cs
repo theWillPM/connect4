@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
+using System.Security.Cryptography.X509Certificates;
+using System.Drawing;
+using System.Timers;
 
 namespace connect4
 {
@@ -8,6 +12,10 @@ namespace connect4
     /// </summary>
     class Program
     {
+        static int CurrentFrame = 0;
+        static int FramesPerSecond = 60;
+        static string GameScreen = "MainMenu";
+        static int CursorPosition = 1;
         /// <summary>
         /// The <see cref="Board"/> class keeps track of all token positions, displays <see cref="Player"/> scores, names and colours. A <see cref="Menu"/> is also available for the user to pause, reset, exit.
         /// </summary>
@@ -96,6 +104,8 @@ namespace connect4
 
         public static void Main(string[] args)
         {
+            bool Exit = false;
+ 
             // ToDo
             // Start Game - initial screen. Choose game type (vs. player or computer)
             // Enter player(s) name(s), choose token type, choose colour. Tokens and colours cannot be the same.
@@ -109,17 +119,156 @@ namespace connect4
             // Log position, check for non-manual game-ending condition
 
             // Game-ending conditions:
-                // Player manually exits
-                // Player manually resets
-                // Winning condition is met.
-                    // Four consecutive pieces - Horizontal 
-                    // Four consecutive pieces - Vertical 
-                    // Four consecutive pieces - Diagonal 
+            // Player manually exits
+            // Player manually resets
+            // Winning condition is met.
+            // Four consecutive pieces - Horizontal 
+            // Four consecutive pieces - Vertical 
+            // Four consecutive pieces - Diagonal 
 
             // Change current player
             // repeat play() for current player;
 
+
+            // Controls the frames per second and console drawing frequency.
+            System.Timers.Timer RefreshRate = new()
+            {
+                Interval = 1000 / FramesPerSecond,
+                AutoReset = true,
+                Enabled = true,
+            };
+            RefreshRate.Elapsed += OnTimedEvent;
+
+
+            while (Exit != true)
+            {
+                InputHandler();
+            }
+
+        }
+
+        // Handles keyboard inputs.
+        public static void InputHandler()
+        {
+            // To avoid extremely fast key repetition, current delay = 133 ms (every 8 frames[16.6ms each])
+            if (CurrentFrame % 8 == 0) 
+            { 
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.DownArrow || key.Key == ConsoleKey.S)
+                {
+                    if (CursorPosition == 2)
+                        CursorPosition = 1;
+                    else CursorPosition = 2;
+                }
+                if (key.Key == ConsoleKey.UpArrow || key.Key == ConsoleKey.W)
+                {
+                    if (CursorPosition == 1)
+                        CursorPosition = 2;
+                    else CursorPosition = 1;
+                }
+            }
+        }
+
+        // Main Menu 
+        public static void DisplayMainMenu()
+        {
+            string gameTitle = "- - - - CONNECT FOUR - - - -";
+            string choice1 = "NEW GAME";
+            string choice2 = "OPTIONS";
+            string credits1 = "2023 - Willian P. Munhoz";
+            string credits2 = "github.com/theWillPM";
+
             
+            int c1_pos = (Console.WindowWidth - choice1.Length) / 2;
+            int c2_pos = (Console.WindowWidth - choice2.Length) / 2;
+            int credits1_pos = (Console.WindowWidth - credits1.Length) / 2;
+            int credits2_pos = (Console.WindowWidth - credits2.Length) / 2;
+
+            if (GameScreen == "MainMenu") 
+            {
+                // Display game title
+                Console.WriteLine("\n\n");
+                Console.SetCursorPosition((Console.WindowWidth - gameTitle.Length)/2, Console.CursorTop);
+                Console.WriteLine(gameTitle);
+                Console.WriteLine("\n\n");
+
+                // Draw the indicator arrow besides "New Game" (option 1)
+                if (CursorPosition == 1)
+                {
+                    // Blink the indicator arrow in a subtle frequency.
+                    if (CurrentFrame % 20 > 5) {
+                        choice1 = "-> " + choice1;
+                        Console.SetCursorPosition(c1_pos - 3, Console.CursorTop);
+                        Console.WriteLine($"{choice1}\n\n");
+                    } 
+                    else 
+                    {
+                        Console.SetCursorPosition(c1_pos, Console.CursorTop);
+                        Console.WriteLine($"{choice1}\n\n");
+                    }
+                    Console.SetCursorPosition(c2_pos, Console.CursorTop);
+                    Console.WriteLine($"{choice2}\n\n\n\n");
+                }
+                // Draw the indicator arrow besides "Options" (option 1)
+                else if (CursorPosition == 2)
+                {
+                    Console.SetCursorPosition(c1_pos, Console.CursorTop);
+                    Console.WriteLine($"{choice1}\n\n");
+                    if (CurrentFrame % 20 > 5)
+                    {
+                        choice2 = "-> " + choice2;
+                        Console.SetCursorPosition(c2_pos - 3, Console.CursorTop);
+                        Console.WriteLine($"{choice2}\n\n\n\n");
+                    }
+                    else
+                    {
+                        Console.SetCursorPosition(c2_pos, Console.CursorTop);
+                        Console.WriteLine($"{choice2}\n\n\n\n");
+                    }
+                    
+                }
+
+                // Draw Credits, in dark grey, centered
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.SetCursorPosition(credits1_pos, Console.CursorTop);
+                Console.WriteLine(credits1);
+                Console.SetCursorPosition(credits2_pos, Console.CursorTop);
+                Console.WriteLine(credits2);
+                Console.ForegroundColor = ConsoleColor.White;
+
+            }
+        } 
+
+        // Handles the redrawing of the console screen, every frame.
+        public static void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            Draw();
+        }
+
+        // Draws our current screen on the console app.
+        public static void Draw()
+        {
+            // Clear screen
+            Console.Clear();
+
+            // Go to next frame
+            CurrentFrame++;
+            
+            // Normal frames
+            if (CurrentFrame <= 60)
+            {
+                // display FPS counter
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.Write($"{CurrentFrame, 3}/{FramesPerSecond,2}");
+                Console.ForegroundColor = ConsoleColor.White;
+
+                DisplayMainMenu();
+            }
+            // resets counter
+            if (CurrentFrame >= 60)
+            {
+                CurrentFrame = 0;
+            }
         }
     }
 }
