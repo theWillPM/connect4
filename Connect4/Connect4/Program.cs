@@ -18,10 +18,9 @@ namespace connect4
         static int CursorPosition = 1;
         public static Player P1 = new HumanPlayer();
         public static Player P2 = new HumanPlayer();
-        static int currentPlayer = 1;
+        static Player currentPlayer = P1;
         static List<string> msg = new List<string>();
 
-        
         /// <summary>
         /// The <see cref="Board"/> class keeps track of all token positions, displays <see cref="Player"/> scores, names and colours. A <see cref="Menu"/> is also available for the user to pause, reset, exit.
         /// </summary>
@@ -71,11 +70,15 @@ namespace connect4
         /// <param name="Colour"/>
         public abstract class Player
         {
-            static public int PlayerCount;
+            public static int PlayerCount;
             public abstract string Name { get; protected set; }
             public abstract int Score { get; protected set; }
             public abstract int TokenType { get; set; }
             public abstract ConsoleColor Colour { get; set; }
+
+            public override string ToString() {
+                return Name;
+            }
 
             // ToDo
             protected void AddPlayerCount()
@@ -99,9 +102,9 @@ namespace connect4
         /// </summary>
         public class HumanPlayer : Player
         {
-            public override string Name { get; protected set; } = $"Player_{PlayerCount}";
+            public override string Name { get; protected set; } = $"Player_{PlayerCount+1}";
             public override int Score { get; protected set; } = 0;
-            public override int TokenType { get; set; } = 1;
+            public override int TokenType { get; set; } = PlayerCount+1;
             public override ConsoleColor Colour { get; set; } = ConsoleColor.Cyan;
 
             public HumanPlayer()
@@ -116,7 +119,7 @@ namespace connect4
         {
             public override string Name { get; protected set; } = $"Computer_{PlayerCount+1}";
             public override int Score { get; protected set; } = 0;
-            public override int TokenType { get; set; } = 1;
+            public override int TokenType { get; set; } = PlayerCount + 1;
             public override ConsoleColor Colour { get; set; } = ConsoleColor.Red;
             public ComputerPlayer()
             {
@@ -174,30 +177,38 @@ namespace connect4
         public static void InputHandler()
         {
             
-            // To avoid extremely fast key repetition, current delay = (every 15 frames[16.6ms each])
-            if (CurrentFrame % 15 == 0) { 
+            // To avoid extremely fast key repetition, current delay = (every 8 frames[16.6ms each])
+            if (CurrentFrame % 8 == 0) { 
                 ConsoleKeyInfo key = Console.ReadKey(true);
+
                 // Main Menu commands
                 if (GameScreen == "MainMenu") 
                 {
+                    // Navigate through options:
                     if (key.Key == ConsoleKey.DownArrow || key.Key == ConsoleKey.S)
                     {
-                        if (CursorPosition == 2)
+                        if (CursorPosition == 3)
                             CursorPosition = 1;
-                        else CursorPosition = 2;
+                        else CursorPosition++;
                     }
                     if (key.Key == ConsoleKey.UpArrow || key.Key == ConsoleKey.W)
                     {
                         if (CursorPosition == 1)
-                            CursorPosition = 2;
-                        else CursorPosition = 1;
+                            CursorPosition = 3;
+                        else CursorPosition--;
                     }
+
+                    // Select the option:
                     if (key.Key == ConsoleKey.Enter || key.Key == ConsoleKey.Spacebar)
                     {
                         if (CursorPosition == 1)
                             StartGame();
                         else if (CursorPosition == 2)
                             OpenOptions();
+                        else if (CursorPosition == 3) { 
+                            Console.Clear();
+                            PromptExit();
+                        }
                     }
                 }
                 else if (GameScreen == "Game")
@@ -217,11 +228,16 @@ namespace connect4
                     if (key.Key == ConsoleKey.Enter ||  key.Key == ConsoleKey.Spacebar)
                     {
                         if (Board.Arr[0, CursorPosition-1] == 0) { 
-                        msg.Add($"Player{currentPlayer} dropped at column {CursorPosition}.");
+                        msg.Add($"{currentPlayer} dropped at column {CursorPosition}.");
                         DropToken(CursorPosition-1);
                         }
                         else
                         msg.Add($"Player{currentPlayer} please chose another column. Column {CursorPosition} is full!");
+                    }
+                    if (key.Key == ConsoleKey.Escape) {
+                        CursorPosition= 1;
+                        ClearScreen();
+                        DisplayMainMenu();
                     }
                 }
             }
@@ -233,7 +249,7 @@ namespace connect4
                 {
                     if (Board.Arr[i, pos] == 0)
                     { 
-                        Board.Arr[i, pos] = currentPlayer;
+                        Board.Arr[i, pos] = currentPlayer.TokenType;
                         break;
                     }
                 }
@@ -242,34 +258,41 @@ namespace connect4
 
         public static void ChangePlayer()
         {
-            if (currentPlayer == 1)
-                currentPlayer = 2;
-            else currentPlayer = 1;
+            if (currentPlayer == P1)
+                currentPlayer = P2;
+            else currentPlayer = P1;
         }
 
         // Main Menu 
         public static void DisplayMainMenu()
         {
-            Console.Clear();
-
+            GameScreen = "MainMenu";
+            // Local variables to store long strings.
             string gameTitle = "- - - - CONNECT FOUR - - - -";
             string choice1 = "NEW GAME";
             string choice2 = "OPTIONS";
+            string choice3 = "EXIT";
             string credits1 = "2023 - Willian P. Munhoz";
             string credits2 = "github.com/theWillPM";
 
+            //Reset the console cursor to the top-left corner.
+            Console.SetCursorPosition(0, 0);
 
-            int c1_pos = (Console.WindowWidth - choice1.Length) / 2;
-            int c2_pos = (Console.WindowWidth - choice2.Length) / 2;
+            // Center content horizontaly
+            int c1_pos = (Console.WindowWidth - choice1.Length) / 2 -3;
+            int c2_pos = (Console.WindowWidth - choice2.Length) / 2 -3;
+            int c3_pos = (Console.WindowWidth - choice3.Length) / 2 -4;
             int credits1_pos = (Console.WindowWidth - credits1.Length) / 2;
             int credits2_pos = (Console.WindowWidth - credits2.Length) / 2;
 
-
-            // Display game title
-            Console.WriteLine("\n\n");
+            // Display game title on line#3
+            Console.SetCursorPosition(0, 2);
             Console.SetCursorPosition((Console.WindowWidth - gameTitle.Length) / 2, Console.CursorTop);
             Console.WriteLine(gameTitle);
-            Console.WriteLine("\n\n");
+
+            // Go to line#5
+            Console.SetCursorPosition(0, 4);
+
 
             // Draw the indicator arrow besides "New Game" (option 1)
             if (CursorPosition == 1)
@@ -277,34 +300,55 @@ namespace connect4
                 // Blink the indicator arrow in a subtle frequency.
                 if (CurrentFrame % 20 > 5) {
                     choice1 = "-> " + choice1;
-                    Console.SetCursorPosition(c1_pos - 3, Console.CursorTop);
+                    Console.SetCursorPosition(c1_pos, Console.CursorTop);
                     Console.WriteLine($"{choice1}\n\n");
                 }
                 else
                 {
                     Console.SetCursorPosition(c1_pos, Console.CursorTop);
-                    Console.WriteLine($"{choice1}\n\n");
+                    Console.WriteLine($"   {choice1}\n\n");
                 }
                 Console.SetCursorPosition(c2_pos, Console.CursorTop);
-                Console.WriteLine($"{choice2}\n\n\n\n");
+                Console.WriteLine($"   {choice2}\n\n");
+                Console.SetCursorPosition(c3_pos, Console.CursorTop);
+                Console.WriteLine($"   {choice3}\n\n");
             }
             // Draw the indicator arrow besides "Options" (option 1)
             else if (CursorPosition == 2)
             {
                 Console.SetCursorPosition(c1_pos, Console.CursorTop);
-                Console.WriteLine($"{choice1}\n\n");
+                Console.WriteLine($"   {choice1}\n\n");
                 if (CurrentFrame % 20 > 5)
                 {
                     choice2 = "-> " + choice2;
-                    Console.SetCursorPosition(c2_pos - 3, Console.CursorTop);
-                    Console.WriteLine($"{choice2}\n\n\n\n");
+                    Console.SetCursorPosition(c2_pos, Console.CursorTop);
+                    Console.WriteLine($"{choice2}\n\n");
                 }
                 else
                 {
                     Console.SetCursorPosition(c2_pos, Console.CursorTop);
-                    Console.WriteLine($"{choice2}\n\n\n\n");
+                    Console.WriteLine($"   {choice2}\n\n");
                 }
-
+                Console.SetCursorPosition(c3_pos, Console.CursorTop);
+                Console.WriteLine($"   {choice3}\n\n");
+            }
+            else if (CursorPosition == 3)
+            {
+                Console.SetCursorPosition(c1_pos, Console.CursorTop);
+                Console.WriteLine($"   {choice1}\n\n");
+                Console.SetCursorPosition(c2_pos, Console.CursorTop);
+                Console.WriteLine($"   {choice2}\n\n");
+                if (CurrentFrame % 20 > 5)
+                {
+                    choice3 = "-> " + choice3;
+                    Console.SetCursorPosition(c3_pos, Console.CursorTop);
+                    Console.WriteLine($"{choice3}\n\n");
+                }
+                else
+                {
+                Console.SetCursorPosition(c3_pos, Console.CursorTop);
+                Console.WriteLine($"   {choice3}\n\n");
+                }
             }
 
             // Draw Credits, in dark grey, centered
@@ -321,28 +365,41 @@ namespace connect4
         public static void StartGame()
         {
             GameScreen = "Game";
+            Console.Clear();
         }
 
         // Visually represents the board's interface - score, playernames and board state
         public static void DisplayGame()
         {
-            Console.Clear();
-            Console.WriteLine();
+            // Reset Console Cursor to top-left corner.
+            Console.SetCursorPosition(0, 0);
             Console.ForegroundColor = ConsoleColor.White;
 
+            Console.SetCursorPosition(0, 1);
             Console.WriteLine($"{P1.Name,10}{" ",10}{P2.Name,10}");
             Console.WriteLine($"{P1.Score,10}{" ",10}{P2.Score,10}");
-            Console.WriteLine("\n\n");
 
             // Blink the indicator arrow in a subtle frequency.
             if (CurrentFrame % 30 > 5)
             {
-                Console.SetCursorPosition(CursorPosition*4-2, Console.CursorTop);
-                Console.WriteLine($"O");
+                Console.Write(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(0, 3);
+                Console.SetCursorPosition(CursorPosition*4-2, 3);
+                if (currentPlayer == P1) { 
+                    Console.ForegroundColor = P1.Colour;
+                    Console.WriteLine($"{P1.TokenType}");
+                }
+                else if (currentPlayer == P2)
+                {
+                    Console.ForegroundColor = P2.Colour;
+                    Console.WriteLine($"{P2.TokenType}");
+                }
+                Console.ForegroundColor = ConsoleColor.White;
+
             }
             else 
             {
-                Console.WriteLine();
+                Console.SetCursorPosition(0, 4);
             }
             DrawBoard();
             ShowLog();
@@ -414,35 +471,62 @@ namespace connect4
         // Draws our current screen on the console app.
         public static void Draw()
         {
-            // Clear screen
-            // Console.Clear();
-            // I had a problem with scrollback content not being erased by Console.Clear().
-            // This escape sequence by "Alex (https://stackoverflow.com/users/10991429/alex)" found on https://stackoverflow.com/questions/75471607/console-clear-doesnt-clean-up-the-whole-console solves the scrollback content problem.
-            // Console.WriteLine("\x1b[3J");
-
-
-            
             // Normal frames
-            if (CurrentFrame < FramesPerSecond)
+            if (CurrentFrame <= FramesPerSecond)
             {
                 CurrentFrame++;
-/*                // display FPS counter
-                Console.ForegroundColor = ConsoleColor.DarkGreen;
-                Console.Write($"{CurrentFrame,3}/{FramesPerSecond,2}");
-                Console.ForegroundColor = ConsoleColor.White;*/
-
                 if (GameScreen == "MainMenu") DisplayMainMenu();
                 if (GameScreen == "Game") DisplayGame();
 
-                // Go to next frame
-
+                // resets counter
+                if (CurrentFrame >= FramesPerSecond)
+                {
+                    CurrentFrame = 0;
+                }
             }
-            // resets counter
-            if (CurrentFrame >= FramesPerSecond)
+        }
+        public static void PromptExit()
+        {
+
+            GameScreen = "Exit";
+            Console.ForegroundColor = ConsoleColor.White;
+
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine("\n\n\n\n");
+            Console.WriteLine("Are you sure you want to exit?");
+            Console.WriteLine("Press ESC to cancel.");
+            Console.WriteLine("Press ENTER to exit.");
+
+            ConsoleKeyInfo keyPressed;
+
+            while (GameScreen == "Exit") {
+
+                while(Console.KeyAvailable) 
+                Console.ReadKey(false);
+
+                 keyPressed = Console.ReadKey();
+                if (keyPressed.Key == ConsoleKey.Enter)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("\nPress any key to exit...");
+
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    Environment.Exit(0);
+                }
+                else if (keyPressed.Key == ConsoleKey.Escape) { 
+                Console.Clear();
+                DisplayMainMenu();
+                    i++;
+                }
+            }
+        }
+
+        public static void ClearScreen()
+        {
+            for (int i = 1; i<= Console.WindowHeight; i++)
             {
-                CurrentFrame = 0;
-                if (GameScreen == "MainMenu") DisplayMainMenu();
-                if (GameScreen == "Game") DisplayGame();
+                Console.SetCursorPosition(0, i-1);
+                Console.Write(new string(' ', Console.WindowWidth));
             }
         }
     }
