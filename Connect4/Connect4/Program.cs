@@ -13,13 +13,14 @@ namespace connect4
     class Program
     {
         static int CurrentFrame = 0;
-        static int FramesPerSecond = 30;
+        static int FramesPerSecond = 25;
         static string GameScreen = "MainMenu";
         static int CursorPosition = 1;
         public static Player P1 = new HumanPlayer();
         public static Player P2 = new HumanPlayer();
         static Player currentPlayer = P1;
         static List<string> msg = new List<string>();
+
 
         /// <summary>
         /// The <see cref="Board"/> class keeps track of all token positions, displays <see cref="Player"/> scores, names and colours. A <see cref="Menu"/> is also available for the user to pause, reset, exit.
@@ -232,11 +233,11 @@ namespace connect4
                         DropToken(CursorPosition-1);
                         }
                         else
-                        msg.Add($"Player{currentPlayer} please chose another column. Column {CursorPosition} is full!");
+                        msg.Add($"{currentPlayer} please chose another column. Column {CursorPosition} is full!");
                     }
                     if (key.Key == ConsoleKey.Escape) {
                         CursorPosition= 1;
-                        ClearScreen();
+                        Console.Clear();
                         DisplayMainMenu();
                     }
                 }
@@ -516,7 +517,6 @@ namespace connect4
                 else if (keyPressed.Key == ConsoleKey.Escape) { 
                 Console.Clear();
                 DisplayMainMenu();
-                    i++;
                 }
             }
         }
