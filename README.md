@@ -1,4 +1,8 @@
-# connect4
+# connect4  (Rebased to MORE_OBJECT_ORIENTED branch)
+
+This branch used a high frame rate an was more aesthetically pleasant, but the Windows Console applications bugs out eventually.
+(Discontinued branch, but kept it to use as reference code).
+ 
 An Object-Oriented approach to "Connect 4" game.
 
 
