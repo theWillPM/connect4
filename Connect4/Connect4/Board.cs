@@ -28,6 +28,7 @@ namespace connect4
                 Title = title;
                 Screens.Add(this);
 
+                // Creates a message log (Future implementation - save to .txt)
                 msgLog.Add($"Created Board name {Title}\n");
                 msgLog.Add($"Sucessfully started \n");
                 msgLog.Add($"Welcome, {P1.Name}.\n");
@@ -87,7 +88,7 @@ namespace connect4
                 content += $"-----------------------------\n\n";
 
                 // Bottom of screen messages:
-                content += "Cursor Position: " + CursorPosition + "\n";
+                content += "Selected Column: " + (CursorPosition+1) + "\n";
                 content += "Current Player: " + CurrentPlayer + "\n\n";
 
                 // Last actions log (set to last message only, can easily be changed to show more:)
@@ -108,14 +109,21 @@ namespace connect4
                     if (Arr[i, CursorPosition] == 0 && Arr[0, CursorPosition] == 0)
                     {
                         // drop token and change player
-                        msgLog.Add($"{CurrentPlayer} dropped at Column {CursorPosition+1}, Row {5-i+1}].\n");
+                        msgLog.Add($"{CurrentPlayer} dropped at [Column {(CursorPosition+1)}, Row {5-i+1}].\n");
                         Arr[i, CursorPosition] = CurrentPlayer.TokenType;
                         if (CheckForGameEndingCondition())
                         {
-                        GivePoints();
-                        Console.ReadKey(false);
-                        ResetBoard();
-
+                            GivePoints();
+                            Console.ReadKey(false);
+                            ResetBoard();
+                            break;
+                        }
+                        if (NoMoreSlots())
+                        {
+                            msgLog.Add($"No more slots!\n");
+                            Console.ReadKey(false);
+                            ResetBoard();
+                            break;
                         }
                         ChangePlayer();
                         break;
@@ -126,36 +134,39 @@ namespace connect4
             }
 
             // change current player
-            public void ChangePlayer()
+            public static void ChangePlayer()
             {
                 if (CurrentPlayer == P1)
                     CurrentPlayer = P2;
                 else CurrentPlayer = P1;
             }
             
-            public void GivePoints()
+            // Give points to winning player.
+            public static void GivePoints()
             {
                 CurrentPlayer.Score++;
                 msgLog.Add($"{CurrentPlayer.Name} WON ! ! --- Press any key to reset board. ");
             }
 
-            public void ResetBoard()
+            // Reset the board, clearing the tokens.
+            public static void ResetBoard()
             {
                 Array.Clear(Arr);
+                msgLog.Add($"{CurrentPlayer.Name}'s Turn.");
             }
 
             // Function to check for game-ending conditions:
             // Connect 4 (Row, Column, Diagonal)
             // No more empty fields
-            public bool CheckForGameEndingCondition()
+            public static bool CheckForGameEndingCondition()
             {
                 if (CheckHorizontal()) return true;
                 else if (CheckVertical()) return true;
                 else if (CheckDiagonal1()) return true;
                 else if (CheckDiagonal2()) return true;
-                else if (NoMoreSlots()) return true;
                 else return false;
 
+                // Checks the board for any 4 horizontal equal, consecutive values.
                 bool CheckHorizontal()
                 {
                     for (int i = 0; i < 6; i++) 
@@ -169,6 +180,7 @@ namespace connect4
                 return false;
                 }
 
+                // Checks the board for any 4 vertical equal, consecutive values.
                 bool CheckVertical()
                 {
                     for (int i = 0; i < 7; i++)
@@ -181,6 +193,9 @@ namespace connect4
                     }
                     return false;
                 }
+
+
+                // Checks the board for any 4 diagonally equal, consecutive values. \ direction
                 bool CheckDiagonal1()
                 {
                     for (int i = 0; i < 3; i++)
@@ -193,6 +208,8 @@ namespace connect4
                     }
                     return false;
                 }
+
+                // Checks the board for any 4 diagonally equal, consecutive values. / direction
                 bool CheckDiagonal2()
                 {
                     for (int i = 3; i < 6; i++)
@@ -205,12 +222,15 @@ namespace connect4
                     }
                     return false;
                 }
-                bool NoMoreSlots()
-                {
-                    if (Arr[0, 0] != 0 && Arr[0, 1] != 0 && Arr[0, 2] != 0 && Arr[0, 3] != 0 && Arr[0, 4] != 0 && Arr[0, 5] != 0 && Arr[0, 6] != 0)
-                    return true;
-                    else return false;
-                }
+
+
+                // Checks if there are no more slots available.
+            }
+            bool NoMoreSlots()
+            {
+                if (Arr[0, 0] != 0 && Arr[0, 1] != 0 && Arr[0, 2] != 0 && Arr[0, 3] != 0 && Arr[0, 4] != 0 && Arr[0, 5] != 0 && Arr[0, 6] != 0)
+                return true;
+                else return false;
             }
         }
     }

@@ -9,6 +9,8 @@ using static connect4.Program;
 using System.Transactions;
 using System.Security.Principal;
 using System.Threading.Tasks.Sources;
+using System.Linq.Expressions;
+// A lot of these dependencies aren't required as of .NET 6.0.
 
 namespace connect4
 {
@@ -17,34 +19,42 @@ namespace connect4
     /// </summary>
     partial class Program
     {   
+        // A list of all game screens. This is used in the GameScreen.Interact() function.
         static List<GameScreen> Screens = new List<GameScreen>();
         static GameScreen CurrentScreen;
         static Player CurrentPlayer;
 
+        // Our human players:
         static Player P1 = new HumanPlayer();
         static Player P2 = new HumanPlayer();
 
+        // Out game clock, for handling frames and time-sensitive tasks:
         static GameClock Clock = new GameClock();
+
+        // Creating our game screens:
         static GameScreen MainMenu = new("MainMenu");
-        static GameScreen Options = new("Options");
         static GameScreen Game = new Board("Game");
         static GameScreen Exit = new("Exit");
+        //static GameScreen Options = new("Options"); // To be added
 
-        static string Credits = "2023 - Willian P. Munhoz \ngithub.com/theWillPM";
-
+        // Author
+        static string Credits = "2023 - Willian P. Munhoz \n                    github.com/theWillPM";
 
         public static void Main(string[] args)
         {
+            // Hide default console cursor.
             Console.CursorVisible = false;
 
-            P2.Colour = ConsoleColor.Red;
+            //Currently no effect for player colour, as we are printing one big string. 
+            //P2.Colour = ConsoleColor.Red;
             CurrentPlayer = P1;
             
             // Add options to Main Menu:
             MainMenu.AddOption("New Game");
             MainMenu.AddOption("Continue Game");
-            MainMenu.AddOption("Options");
+            //MainMenu.AddOption("Options"); // TODO - Add options Menu
             MainMenu.AddOption("Exit");
+            Exit.AddOption("Terminate");
             CurrentScreen = MainMenu;
 
             // Add seven column options to Game screen:
@@ -53,15 +63,22 @@ namespace connect4
                 Game.AddOption($"{i}");
             }
 
+            // Draw the introduction screen
+            DrawIntro();
+
             // This controls what happens when 'refresh rate' elapses:
             Clock.RefreshRate.Elapsed += OnTimedEvent;
-
             static void OnTimedEvent(Object source, ElapsedEventArgs e)
             {
                 Console.Clear();
-
                 HandleFrames();
-                CurrentScreen.Display();
+                try { 
+                    CurrentScreen.Display();
+                }
+                catch(Exception ex)
+                {
+                    throw ex = new("Current screen not detected");
+                }
             }
 
             // Handles the game's frames.
@@ -72,28 +89,43 @@ namespace connect4
                 else GameClock.CurrentFrame++;
             }
 
-            // Create a seven-column, six-row grid.
-            // 'play()'. Player1 starts. Show cursor position.
-            // Control with A or LeftArrow(left), D or RightArrow(right)
-            // Space or Enter drops the Token
-            // The pieces fall top-to-bottom, occupying the lowest available space.
-            // Instantiate a new Token, animate it moving down [optional]
-            // Log position, check for non-manual game-ending condition
-
-            // Game-ending conditions:
-            // Player manually exits
-            // Player manually resets
-            // Winning condition is met.
-            // Four consecutive pieces - Horizontal 
-            // Four consecutive pieces - Vertical 
-            // Four consecutive pieces - Diagonal 
-
-
-
             while (true)
             {
                 InputHandler.HandleKey();
             }
+        }
+
+        // Function to draw our introduction scene
+        static void DrawIntro()
+        {
+            string intro =  $"      ■■■■  ■■■■  ■■   ■  ■■   ■  ■■■■  ■■■■ ■■■■■      ■    ■\n" +
+                            $"      ■     ■  ■  ■■   ■  ■■   ■  ■     ■      ■        ■    ■\n" +
+                            $"      ■     ■  ■  ■ ■  ■  ■ ■  ■  ■     ■      ■        ■    ■\n" +
+                            $"      ■     ■  ■  ■ ■  ■  ■ ■  ■  ■■■   ■      ■        ■■■■■■\n" +
+                            $"      ■     ■  ■  ■  ■ ■  ■  ■ ■  ■     ■      ■             ■\n" +
+                            $"      ■     ■  ■  ■  ■ ■  ■  ■ ■  ■     ■      ■             ■\n" +
+                            $"      ■■■■  ■■■■  ■   ■■  ■   ■■  ■■■■  ■■■■   ■             ■ ";
+            Console.SetCursorPosition(0, 5);
+            for (int i = 0; i < 7; i++)
+            {
+                Thread.Sleep(100);
+                for (int j = 0; j < 56; j++)
+                {
+                    Console.Write(intro[j + i * 63]);
+
+                }
+                for (int j = 56; j < 63; j++) { 
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    Console.Write(intro[j + i * 63]);
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+            }
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("\n\n      A game by:  " + Credits);
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("\n      Press any key to continue...");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.ReadKey(false);
         }
     }
 }

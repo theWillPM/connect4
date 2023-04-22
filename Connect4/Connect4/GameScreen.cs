@@ -39,6 +39,8 @@
                     CursorPosition++;
                 else CursorPosition = 0;
             }
+
+            // Interact controls what happens when the ENTER or Spacebar keys are pressed. 
             public virtual void Interact()
             {
                 // Retrieves the selected option
@@ -55,23 +57,37 @@
                         Array.Clear(Board.Arr);
                         s.CursorPosition = 0;
                     }
+                    if (o == "Exit")
+                    {
+                        CurrentScreen = Exit;
+                    }
+                    if (o == "Terminate")
+                    {
+                        Environment.Exit(0);
+                    }
                 } catch
                 {
                     Exception e = new Exception("Could not find selected option. ");
                 }
             }
 
+            // Calls the ToString function, unless the current screen is the 'exit' interface.
             public virtual void Display()
             {
+                if (CurrentScreen != Exit)
                 Console.WriteLine(ToString());
-                if(CurrentScreen == MainMenu)
+                // if we are in the 'exit' menu:
+                else
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.WriteLine("\nCredits:\n" + Credits);
+                    Console.Clear();
+                    Console.Write("\n\n\n\n\n\nAre you sure you want to exit?\n Press ");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("Enter/Spacebar to EXIT.");
                     Console.ForegroundColor = ConsoleColor.White;
                 }
             }
 
+            // Overrides the ToString method of our game screens.
             public override string ToString()
             {
                 String content = (
@@ -90,15 +106,12 @@
                         content += ($"{"-> "}{Options[i]} \n");
                     else if (GameClock.CurrentFrame % GameClock.FramesPerSecond <= GameClock.FramesPerSecond / 8)
                         content += ($"{" ",3}{Options[i]} \n");
-
                 }
 
                 // Bottom of screen messages:
                 content += "\nCursor Position: " + CursorPosition;
 
-                
                 return content;
-               
             }
         }
     }
